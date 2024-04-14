@@ -1,0 +1,323 @@
+---
+title: "Enhancing Customer Loyalty and Coupon Redemption Strategy for Waitrose"
+output: word_document
+date: "2023-07-15"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+## Enhancing Customer Loyalty and Coupon Redemption Strategy for Waitrose.
+
+
+# ----------------------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------
+
+# Load the necessary packages
+```{r}
+library(readxl) # For importing data from excel
+library(tidyverse) # For performing data manipulation
+library(ggplot2) # For visualizing the dataset
+library(lubridate) # For working with dates
+library(car) # For modelling
+library(stats) # For checking regression assumptions i.e the qqplot
+```
+
+
+# ----------------------------------------------------------------------------------------------------
+# ----------------------------------------------------------------------------------------------------
+
+# Importing dataset
+```{r}
+campaign_descriptions <- read.csv("C:/Users/User/Desktop/Dataset/campaign_descriptions.csv")
+campaigns <- read.csv("C:/Users/User/Desktop/Dataset/campaigns.csv")
+coupon_redemptions <- read.csv("C:/Users/User/Desktop/Dataset/coupon_redemptions.csv")
+coupons <- read.csv("C:/Users/User/Desktop/Dataset/coupons.csv")
+demographics <- read.csv("C:/Users/User/Desktop/Dataset/demographics.csv")
+products <- read.csv("C:/Users/User/Desktop/Dataset/products.csv")
+promotions <- read.csv("C:/Users/User/Desktop/Dataset/promotions.csv")
+transactions <- read.csv("C:/Users/User/Desktop/Dataset/transactions.csv")
+```
+
+
+# exploring the first few observations in each data file
+```{r}
+head(campaign_descriptions)
+head(campaigns)
+head(coupon_redemptions)
+head(coupons)
+head(demographics)
+head(products)
+head(promotions)
+head(transactions)
+```
+# --------------------------------------------------------------------------------------------------
+
+# Data Exploration
+```{r}
+# Checking the structure of the campain description data
+str(campaign_descriptions)
+```
+
+```{r}
+str(campaigns)
+```
+
+```{r}
+str(coupon_redemptions)
+```
+
+```{r}
+str(coupons)
+```
+
+```{r}
+str(demographics)
+```
+
+```{r}
+str(products)
+```
+
+```{r}
+str(promotions)
+```
+
+```{r}
+str(transactions)
+```
+
+# --------------------------------------------------------------------------------------------------
+# Data Cleaning
+# Checking for missing values each data file
+```{r}
+colSums(is.na(head(campaign_descriptions)))
+```
+
+```{r}
+colSums(is.na(head(campaigns)))
+```
+
+```{r}
+colSums(is.na(head(coupon_redemptions)))
+```
+
+```{r}
+colSums(is.na(head(coupons)))
+```
+
+```{r}
+colSums(is.na(head(demographics)))
+```
+
+```{r}
+colSums(is.na(head(products)))
+```
+
+```{r}
+products2<-na.omit(products)
+colSums(is.na(head(products2)))
+```
+
+```{r}
+colSums(is.na(head(campaigns)))
+```
+
+```{r}
+colSums(is.na(head(promotions)))
+```
+
+```{r}
+colSums(is.na(head(transactions)))
+```
+
+
+
+# ---------------------------------------------------------------------------------------------------
+# ---------------------------------------------------------------------------------------------------
+
+# Exploratory data analysis
+
+```{r}
+summary(campaign_descriptions)
+
+```
+
+```{r}
+summary(campaigns)
+```
+
+```{r}
+summary(coupon_redemptions)
+```
+
+```{r}
+summary(coupons)
+```
+
+```{r}
+summary(demographics)
+```
+
+```{r}
+summary(products)
+```
+
+```{r}
+summary(promotions)
+```
+
+```{r}
+summary(transactions)
+```
+
+
+# ----------------------------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
+
+## Exploratiry data analysis and Visualizations 
+## How many customers are spending more over time? Less overtime? Describe these customers.
+```{r}
+# Calculate total sales for each customer
+customer_sales <- transactions %>%
+  group_by(household_id) %>%
+  summarise(total_sales = sum(sales_value))
+head(customer_sales) 
+```
+
+```{r}
+# Line plot for the total_sales more over rank
+ggplot(customer_sales, aes(x =household_id , y = total_sales)) +
+  geom_line(stat = "identity", fill = "blue") +
+  labs(title = "total_sales more over household_id", x = "household_id", y = "total_sales")
+
+```
+
+```{r}
+# Identify customers spending more over time
+increasing_customers <- customer_sales %>%
+  arrange(total_sales) %>%
+  mutate(rank = row_number())
+head(increasing_customers)
+```
+
+```{r}
+# Line plot for the total_sales more over rank
+ggplot(increasing_customers, aes(x =rank , y = total_sales)) +
+  geom_line(stat = "identity", fill = "steelblue") +
+  labs(title = "total_sales more over rank", x = "rank", y = "total_sales")
+
+```
+
+
+```{r}
+# Describe customers spending more over time
+top_customers <- increasing_customers %>%
+  filter(rank <= 10)  # Change the number as per your preference
+head(top_customers)
+```
+
+```{r}
+# Line graph plot for the total_sales more over rank
+ggplot(top_customers, aes(x =rank , y = total_sales)) +
+  geom_line(stat = "identity", fill = "steelblue") +
+  labs(title = "customers spending more over time", x = "rank", y = "Customer spending")
+```
+
+```{r}
+# Describe customers spending less over time
+bottom_customers <- decreasing_customers %>%
+  filter(rank <= 10)  # Change the number as per your preference
+head(bottom_customers)
+```
+
+```{r}
+# Line plot for the customers spending less over time
+ggplot(bottom_customers, aes(x =rank , y = total_sales)) +
+  geom_line(stat = "identity", fill = "steelblue") +
+  labs(title = "customers spending less over time", x = "rank", y = "Customer spending")
+```
+
+```{r}
+# Which demographic factors (e.g. household size, presence of children, income) appear to affect customer spend? Engagement with certain categories?
+ggplot(demographics, aes(x = marital_status, y = "")) +
+  geom_bar(stat = "identity", fill = "green") +
+  labs(title = "Customers marital status", x = "marital status", y = "Counts")
+```
+
+
+```{r}
+# Bar plot for the Campaign type with the highest counts
+ggplot(campaign_descriptions, aes(x = campaign_type, y = "")) +
+  geom_bar(stat = "identity", fill = "steelblue") +
+  labs(title = "Campaign type with the highest counts", x = "campaign_type", y = "Counts")
+
+
+```
+
+```{r}
+# Plotting household_id over campaign_id
+ggplot(campaigns, aes(x = campaign_id, y = household_id)) +
+  geom_point() +
+  labs(x = "campaign_id", y = "household_id", title = "household_id Over campaign_id")
+
+```
+
+```{r}
+
+# Plotting coupon_upc over time
+ggplot(coupon_redemptions, aes(x = redemption_date)) +
+  geom_point(aes(y = coupon_upc, color = "coupon_upc")) +
+  labs(x = "redemption_date", y = "Value", title = "coupon_upc Over redemption_date") +
+  scale_color_manual(values = c("coupon_upc" = "blue"))
+
+```
+
+```{r}
+# Plotting coupon_upc and household_id together
+ggplot(coupon_redemptions, aes(x = redemption_date)) +
+geom_point(aes(y = household_id, color = "household_id")) +
+  labs(x = "redemption_date", y = "Value", title = "coupon_upc and household_id Over Time") +
+  scale_color_manual(values = c("coupon_upc" = "blue", "household_id" = "red"))
+```
+
+
+```{r}
+# Scatter plot of sales_value by quantity
+ggplot(transactions, aes(x = transactions$sales_value, y = transactions$quantity)) +
+  geom_point(stat = "identity") +
+  labs(x = "sales_value", y = "quantity", title = "Quantity by sales value")
+
+
+```
+
+```{r}
+# Boxplot of product_id by brand
+ggplot(products, aes(x = brand, y = product_id)) +
+  geom_boxplot() +
+  labs(x = "brand", y = "product_id", title = "Product_id Distribution by brand")
+
+```
+
+
+```{r}
+model1<-lm(sales_value~quantity+retail_disc+coupon_disc+coupon_match_disc, data = transactions)
+summary(model1)
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
